@@ -20,6 +20,39 @@ struct AppendEntry<NewEntry, MapEntryList<Entries...>>
     using type = MapEntryList<NewEntry, Entries...>;
 };
 
+template <auto Key, typename... Entries>
+struct LookupEntryPack;
+
+// Partial specialization for no match
+template <auto Key, auto EntryKey, typename EntryValue, typename... Entries>
+struct LookupEntryPack<Key, MapEntry<EntryKey, EntryValue>, Entries...>
+{
+    using type = LookupEntryPack<Key, Entries...>::type;
+};
+
+// Partial specialization for key match
+template <auto Key, typename EntryValue, typename... Entries>
+struct LookupEntryPack<Key, MapEntry<Key, EntryValue>, Entries...>
+{
+    using type = EntryValue;
+};
+
+// Partial specialization for empty list
+template <auto Key>
+struct LookupEntryPack<Key>
+{
+    using type = void;
+};
+
+template <auto Key, typename EntryList>
+struct LookupEntryList;
+
+template <auto Key, typename... Entries>
+struct LookupEntryList<Key, MapEntryList<Entries...>>
+{
+    using type = LookupEntryPack<Key, Entries...>::type;
+};
+
 template <typename KeyType, typename Entries = MapEntryList<>>
 class TypeMap
 {
@@ -31,5 +64,8 @@ public:
     {
         return TypeMap<KeyType, typename AppendEntry<MapEntry<Key, Value>, Entries>::type>();
     }
+
+    template <KeyType Key>
+    using lookup = LookupEntryList<Key, Entries>::type;
 
 };
