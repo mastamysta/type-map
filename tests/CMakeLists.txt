@@ -1,0 +1,2 @@
+add_executable(insert_types insert_types.cpp)
+target_link_libraries(insert_types type_map)
