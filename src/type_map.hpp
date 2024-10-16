@@ -1,5 +1,7 @@
 #pragma once
 
+#include <concepts>
+
 template <auto _Key, typename _Value>
 struct MapEntry
 {
@@ -8,19 +10,37 @@ struct MapEntry
     decltype(_Key) Key = _Key; 
 };
 
-template <typename... _Entries>
+template <auto Key, typename Value>
+void passMapEntry(MapEntry<Key, Value>){}
+
+template <typename MapEntry>
+concept IMapEntry = requires (MapEntry e)
+{
+    { passMapEntry(e) };
+};
+
+template <IMapEntry... _Entries>
 struct MapEntryList{};
 
-template <typename NewEntry, typename EntryList>
+template <IMapEntry... Entries>
+void passMapEntryList(MapEntryList<Entries...>) {}
+
+template <typename MapEntryList>
+concept IMapEntryList = requires (MapEntryList l)
+{
+    { passMapEntryList(l) };
+};
+
+template <IMapEntry NewEntry, typename EntryList>
 struct AppendEntry;
 
-template <typename NewEntry, typename... Entries>
+template <IMapEntry NewEntry, IMapEntry... Entries>
 struct AppendEntry<NewEntry, MapEntryList<Entries...>>
 {
     using type = MapEntryList<NewEntry, Entries...>;
 };
 
-template <auto Key, typename... Entries>
+template <auto Key, IMapEntry... Entries>
 struct LookupEntryPack;
 
 // Partial specialization for no match
@@ -44,7 +64,7 @@ struct LookupEntryPack<Key>
     using type = void;
 };
 
-template <auto Key, typename EntryList>
+template <auto Key, IMapEntryList EntryList>
 struct LookupEntryList;
 
 template <auto Key, typename... Entries>
@@ -53,7 +73,7 @@ struct LookupEntryList<Key, MapEntryList<Entries...>>
     using type = LookupEntryPack<Key, Entries...>::type;
 };
 
-template <typename KeyType, typename Entries = MapEntryList<>>
+template <typename KeyType, IMapEntryList Entries = MapEntryList<>>
 class TypeMap
 {
 public:

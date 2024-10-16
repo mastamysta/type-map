@@ -4,7 +4,7 @@
 
 int main()
 {
-    constexpr TypeMap<int> m;
+    TypeMap<int> m;
 
     auto n = m.add_mapping<1, bool>();
     auto p = n.add_mapping<2, int>();
